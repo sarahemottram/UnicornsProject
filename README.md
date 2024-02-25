@@ -1,6 +1,6 @@
 # How to Set Up  
-* You need Visual Studio 2022 with .net8 installed, "ASP.NET and Web Development" workload  
-* Open the "UnicornsInventorySystem.sln" folder
+* You need Visual Studio 2022 with .net 8 and the "ASP.NET and Web Development" workload installed    
+* Open the "UnicornsInventorySystem.sln" solution
 * On the right hand side you'll see
   * "UnicornsInventorySystem" which contains our code
   * "UnicornsInventorySystemTests" which contains our tests
