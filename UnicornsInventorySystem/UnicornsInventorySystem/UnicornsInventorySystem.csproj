@@ -9,11 +9,12 @@
   <ItemGroup>
     <None Remove="Controllers\InventoryController" />
     <None Remove="Controllers\NewFile.txt" />
+    <None Remove="Database\NewFile.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
 </Project>
