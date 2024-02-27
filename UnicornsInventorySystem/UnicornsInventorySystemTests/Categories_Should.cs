@@ -15,13 +15,13 @@ public class Categories_Should
             {
                 Id = 1,
                 Name = "Chips",
-                Description = ""
+                Description = "Salty Snacks"
             },
             new Category()
             {
                 Id = 2,
-                Name = "Drinks",
-                Description = ""
+                Name = "Sodas",
+                Description = "Bubbly Beverages"
             }
         };
         mockDatabaseContext.Setup(context => context.Categories).ReturnsDbSet(categories);
@@ -38,7 +38,7 @@ public class Categories_Should
         {
             Id = 3,
             Name = "Pastries",
-            Description = ""
+            Description = "Sweet Treats"
         };
 
         //Act
