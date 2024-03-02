@@ -9,7 +9,7 @@ namespace UnicornsInventorySystemTests;
 
 public class Products_Should
 {
-
+    //Mock Database for Testing
     private static (Mock<DatabaseContext> mockDatabaseContext, List<Product> products) GetMockDatabase()
     {
         var mockDatabaseContext = new Mock<DatabaseContext>();
@@ -89,7 +89,7 @@ public class Products_Should
 
         //Assert
         Assert.NotNull(result);
-        Assert.Equal(result.Id, product.Id);
+        Assert.Equal(product.Id, result.Id);
     }
 
     [Fact]

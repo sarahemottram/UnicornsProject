@@ -8,9 +8,14 @@ namespace UnicornsInventorySystem.Controllers;
 [Route("[controller]")]
 public class TransactionController : ControllerBase
 {
+    [HttpPost(Name = "CreateTransaction")]
+    public Transaction CreateTransaction([FromServices] DatabaseContext context, int customerid, int productid, TransactionType type)
+    {
+        throw new NotImplementedException();
+    }
 
-    [HttpPost(Name = "AddTransaction")]
-    public int AddTransaction([FromServices] DatabaseContext context, Transaction transaction)
+    [HttpGet(Name = "GetAllTransactions")]
+    public List<Transaction> GetAllTransactions([FromServices] DatabaseContext context)
     {
         throw new NotImplementedException();
     }
@@ -21,14 +26,14 @@ public class TransactionController : ControllerBase
         throw new NotImplementedException();
     }
 
-    [HttpGet("{customerid}", Name = "GetAllUserTransactions")]
+    [HttpGet("ByCustomer/{customerid}", Name = "GetAllUserTransactions")]
     public List<Transaction> GetAllUserTransactions([FromServices] DatabaseContext context, int customerId)
     {
         throw new NotImplementedException();
     }
 
-    [HttpGet("{productid}", Name = "GetAllProductTransactions")]
-    public List<Transaction> GetAllProductTransactions([FromServices] DatabaseContext context, int prodcutId)
+    [HttpGet("ByProduct/{productid}", Name = "GetAllProductTransactions")]
+    public List<Transaction> GetAllProductTransactions([FromServices] DatabaseContext context, int productId)
     {
         throw new NotImplementedException();
     }

@@ -1,6 +1,6 @@
 ﻿namespace UnicornsInventorySystem.Entities;
 
-public class Supplier : IEntity
+public record Supplier : IEntity
 {
     public int Id { get; set; }
     public required string Name { get; set; }

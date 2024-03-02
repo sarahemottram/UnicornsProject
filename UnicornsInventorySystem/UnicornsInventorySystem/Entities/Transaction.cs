@@ -1,6 +1,6 @@
 ﻿namespace UnicornsInventorySystem.Entities;
 
-public class Transaction : IEntity
+public record Transaction : IEntity
 {
     public int Id { get; set; }
     public required int ProductId { get; set; }
