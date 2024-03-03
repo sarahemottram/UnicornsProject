@@ -1,5 +1,6 @@
 # How to Set Up  
 * You need Visual Studio 2022 with .net 8 and the "ASP.NET and Web Development" workload installed    
+* Clone the repository
 * Open the "UnicornsInventorySystem.sln" solution
 * On the right hand side you'll see
   * "UnicornsInventorySystem" which contains our code
