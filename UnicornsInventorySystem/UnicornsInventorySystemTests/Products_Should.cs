@@ -111,7 +111,6 @@ public class Products_Should
     public void UpdateProduct_Should_DatabaseUpdateProduct()
     {
         //Arrange
-        //Arrange
         var (mockDatabaseContext, products) = GetMockDatabase();
         var systemUnderTest = new ProductsController();
 
