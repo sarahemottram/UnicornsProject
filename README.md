@@ -5,4 +5,4 @@
   * "UnicornsInventorySystem" which contains our code
   * "UnicornsInventorySystemTests" which contains our tests
 # Sprint 1 Test Cases
-* A brief description of the functionality the software should have after all code is implemented using the test cases in the next phase of the project
+After all the code is implemented using the test cases in the next phase of the project, the software will offer a wide range of features. It will allow for efficient management of products, categories, suppliers, customers, and transactions. Users will be able to add, edit, and delete products, categorize them appropriately, and manage supplier details, including contact information. The system will accurately record and track all transactions, including sales, purchases, returns, and exchanges, ensuring real-time updates to inventory levels. 
