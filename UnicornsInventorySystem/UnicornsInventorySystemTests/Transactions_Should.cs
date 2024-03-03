@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Moq;
+﻿using Moq;
 using Moq.EntityFrameworkCore;
-using System;
 using UnicornsInventorySystem.Controllers;
 using UnicornsInventorySystem.Database;
 using UnicornsInventorySystem.Entities;
