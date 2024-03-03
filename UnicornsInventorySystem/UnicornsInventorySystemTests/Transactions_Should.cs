@@ -9,7 +9,7 @@ namespace UnicornsInventorySystemTests;
 public class Transactions_Should
 {
     //Mock Database for Testing
-    private static (Mock<DatabaseContext> mockDatabaseContext, List<Transaction> transactions) GetMockDatabase()
+    private static (Mock<DatabaseContext> mockDatabaseContext, List<Transaction> transactions, List<Product> products, List<Customer> customers) GetMockDatabase()
     {
         var mockDatabaseContext = new Mock<DatabaseContext>();
         var transactions = new List<Transaction>()
@@ -71,6 +71,15 @@ public class Transactions_Should
                 CategoryId = 1,
                 QuantityInStock = 9,
                 Sku = "5678"
+            },
+            new Product()
+            {
+                Id = 3,
+                Name = "PlayStation 5",
+                Price = 600,
+                CategoryId = 3,
+                QuantityInStock = 0,
+                Sku = "1011"
             }
         };
 
@@ -93,18 +102,18 @@ public class Transactions_Should
         mockDatabaseContext.Setup(context => context.Transactions).ReturnsDbSet(transactions);
         mockDatabaseContext.Setup(context => context.Products).ReturnsDbSet(products);
         mockDatabaseContext.Setup(context => context.Customers).ReturnsDbSet(customers);
-        return (mockDatabaseContext, transactions);
+        return (mockDatabaseContext, transactions, products, customers);
     }
 
     [Fact]
     public void CreateTransaction_Should_CreateValidTransaction()
     {
         //Arange
-        var (mockDatabaseContext, _) = GetMockDatabase();
-        var systemUnderText = new TransactionController();
+        var (mockDatabaseContext, _, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
 
         //Act
-        var result = systemUnderText.CreateTransaction(mockDatabaseContext.Object, 1, 1, TransactionType.Sale);
+        var result = systemUnderTest.CreateTransaction(mockDatabaseContext.Object, 1, 1, TransactionType.Sale);
 
         //Assert
         Assert.NotNull(result);
@@ -114,7 +123,7 @@ public class Transactions_Should
     public void CreateTransaction_Should_GetExistingCustomer()
     {
         //Arange
-        var (mockDatabaseContext, _) = GetMockDatabase();
+        var (mockDatabaseContext, _, _, _) = GetMockDatabase();
         var systemUnderTest = new TransactionController();
         var customerId = 1;
         var productId = 1;
@@ -131,12 +140,12 @@ public class Transactions_Should
     public void CreateTransaction_Should_ThrowException_IfCustomerDoesntExist()
     {
         //Arange
-        var (mockDatabaseContext, _) = GetMockDatabase();
-        var systemUnderText = new TransactionController();
+        var (mockDatabaseContext, _, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
         var customerId = 420;
 
         //Act
-        var exception = Record.Exception(() => systemUnderText.CreateTransaction(mockDatabaseContext.Object, customerId, 1, TransactionType.Sale));
+        var exception = Record.Exception(() => systemUnderTest.CreateTransaction(mockDatabaseContext.Object, customerId, 1, TransactionType.Sale));
 
         //Assert
         Assert.NotNull(exception);
@@ -147,7 +156,7 @@ public class Transactions_Should
     public void CreateTransaction_Should_GetExistingProduct()
     {
         //Arange
-        var (mockDatabaseContext, _) = GetMockDatabase();
+        var (mockDatabaseContext, _, _, _) = GetMockDatabase();
         var systemUnderTest = new TransactionController();
         var customerId = 1;
         var productId = 1;
@@ -164,12 +173,12 @@ public class Transactions_Should
     public void CreateTransaction_Should_ThrowException_IfProductDoesntExist()
     {
         //Arange
-        var (mockDatabaseContext, _) = GetMockDatabase();
-        var systemUnderText = new TransactionController();
+        var (mockDatabaseContext, _, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
         var productId = 420;
 
         //Act
-        var exception = Record.Exception(() => systemUnderText.CreateTransaction(mockDatabaseContext.Object, 1, productId, TransactionType.Sale));
+        var exception = Record.Exception(() => systemUnderTest.CreateTransaction(mockDatabaseContext.Object, 1, productId, TransactionType.Sale));
 
         //Assert
         Assert.NotNull(exception);
@@ -177,18 +186,75 @@ public class Transactions_Should
     }
 
     [Fact]
+    public void CreateTransaction_Should_RemoveFromProductInventoryOnSale()
+    {
+        //Arange
+        var (mockDatabaseContext, _, products, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
+        var product = products.First();
+        var productId = product.Id;
+        var transactionType = TransactionType.Sale;
+        var productInventory = product.QuantityInStock;
+
+        //Act
+        systemUnderTest.CreateTransaction(mockDatabaseContext.Object, 1, productId, transactionType);
+
+        //Assert
+        Assert.Equal(productInventory - 1, product.QuantityInStock);
+        mockDatabaseContext.Verify(context => context.Products.Update(It.IsAny<Product>()), Times.Once);
+        mockDatabaseContext.Verify(context => context.SaveChanges(), Times.Once);
+    }
+
+    [Fact]
+    public void CreateTransaction_Should_AddToProductInventoryOnReturn()
+    {
+        //Arange
+        var (mockDatabaseContext, _, products, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
+        var product = products.First();
+        var productId = product.Id;
+        var transactionType = TransactionType.Return;
+        var productInventory = product.QuantityInStock;
+
+        //Act
+        systemUnderTest.CreateTransaction(mockDatabaseContext.Object, 1, productId, transactionType);
+
+        //Assert
+        Assert.Equal(productInventory + 1, product.QuantityInStock);
+        mockDatabaseContext.Verify(context => context.Products.Update(It.IsAny<Product>()), Times.Once);
+        mockDatabaseContext.Verify(context => context.SaveChanges(), Times.Once);
+    }
+
+    [Fact]
+    public void CreateTransaction_Should_ThrowException_IfOutOfStockItemIsSold()
+    {
+        //Arange
+        var (mockDatabaseContext, _, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
+        var outOfStockId = mockDatabaseContext.Object.Products.First(x => x.QuantityInStock == 0).Id;
+        var transactionType = TransactionType.Sale;
+
+        //Act
+        var exception = Record.Exception(() => systemUnderTest.CreateTransaction(mockDatabaseContext.Object, 1, outOfStockId, transactionType));
+
+        //Assert
+        Assert.NotNull(exception);
+        Assert.True(exception.Message.Contains("Product is out of stock", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void CreateTransaction_Should_GetCorrectPrice()
     {
         //Arange
-        var (mockDatabaseContext, transactions) = GetMockDatabase();
-        var systemUnderText = new TransactionController();
+        var (mockDatabaseContext, transactions, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
         var customerId = 1;
         var productId = 1;
         var transactionType = TransactionType.Sale;
         var price = mockDatabaseContext.Object.Products.First().Price;
 
         //Act
-        var result = systemUnderText.CreateTransaction(mockDatabaseContext.Object, customerId, productId, transactionType).Price;
+        var result = systemUnderTest.CreateTransaction(mockDatabaseContext.Object, customerId, productId, transactionType).Price;
 
         //Assert
         Assert.Equal(price, result);
@@ -198,29 +264,29 @@ public class Transactions_Should
     public void CreateTransaction_Should_GetCorrectTime()
     {
         //Arange
-        var (mockDatabaseContext, transactions) = GetMockDatabase();
-        var systemUnderText = new TransactionController();
+        var (mockDatabaseContext, transactions, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
         var customerId = 1;
         var productId = 1;
         var transactionType = TransactionType.Sale;
         var date = DateTime.Now;
 
         //Act
-        var result = systemUnderText.CreateTransaction(mockDatabaseContext.Object, customerId, productId, transactionType).Date;
+        var result = systemUnderTest.CreateTransaction(mockDatabaseContext.Object, customerId, productId, transactionType).Date;
 
         //Assert
-        Assert.Equal(date, result,TimeSpan.FromSeconds(5));
+        Assert.Equal(date, result, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
     public void CreateTransaction_Should_DatabaseAddTransaction()
     {
         //Arrange
-        var (mockDatabaseContext, transactions) = GetMockDatabase();
-        var systemUnderText = new TransactionController();
+        var (mockDatabaseContext, transactions, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
 
         //Act
-        var result = systemUnderText.CreateTransaction(mockDatabaseContext.Object, 1, 1, TransactionType.Sale);
+        var result = systemUnderTest.CreateTransaction(mockDatabaseContext.Object, 1, 1, TransactionType.Sale);
 
         //Assert
         mockDatabaseContext.Verify(context => context.Transactions.Add(It.IsAny<Transaction>()), Times.Once);
@@ -231,9 +297,9 @@ public class Transactions_Should
     public void GetAllTransactions_Should_GetAllTransactions()
     {
         //Act
-        var (mockDatabaseContext, transactions) = GetMockDatabase();
-        var systemUnderText = new TransactionController();
-        var result = systemUnderText.GetAllTransactions(mockDatabaseContext.Object);
+        var (mockDatabaseContext, transactions, _, _) = GetMockDatabase();
+        var systemUnderTest = new TransactionController();
+        var result = systemUnderTest.GetAllTransactions(mockDatabaseContext.Object);
 
         //Assert
         Assert.NotNull(result);
@@ -244,7 +310,7 @@ public class Transactions_Should
     public void GetTransaction_Should_GetTransaction_WhenItExists()
     {
         //Arrange
-        var (mockDatabaseContext, transactions) = GetMockDatabase();
+        var (mockDatabaseContext, transactions, _, _) = GetMockDatabase();
         var transaction = transactions.First();
         var systemUnderTest = new TransactionController();
 
@@ -260,7 +326,7 @@ public class Transactions_Should
     public void GetTransaction_Should_ReturnNull_WhenItDoesNotExist()
     {
         //Arrange
-        var (mockDatabaseContext, _) = GetMockDatabase();
+        var (mockDatabaseContext, _, _, _) = GetMockDatabase();
         var transactionId = 69;
         var systemUnderTest = new TransactionController();
 
@@ -275,7 +341,7 @@ public class Transactions_Should
     public void GetAllUserTransactions_Should_GetAllUserTransactions()
     {
         //Arrange
-        var (mockDatabaseContext, transactions) = GetMockDatabase();
+        var (mockDatabaseContext, transactions, _, _) = GetMockDatabase();
         var customerId = transactions.First().CustomerId;
         var systemUnderTest = new TransactionController();
 
@@ -291,7 +357,7 @@ public class Transactions_Should
     public void GetAllProductTransactions_Should_GetAllProductTransactions()
     {
         //Arrange
-        var (mockDatabaseContext, transactions) = GetMockDatabase();
+        var (mockDatabaseContext, transactions, _, _) = GetMockDatabase();
         var productId = transactions.First().ProductId;
         var systemUnderTest = new TransactionController();
 
@@ -300,6 +366,6 @@ public class Transactions_Should
 
         //Assert
         Assert.NotNull(result);
-        Assert.Equal(transactions.Where(t => t.ProductId==productId), result);
+        Assert.Equal(transactions.Where(t => t.ProductId == productId), result);
     }
 }
