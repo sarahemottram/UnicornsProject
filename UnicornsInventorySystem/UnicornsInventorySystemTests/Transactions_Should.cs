@@ -133,7 +133,7 @@ public class Transactions_Should
 
         //Assert
         Assert.NotNull(result);
-        mockDatabaseContext.Verify(context => context.Customers.Find(It.IsAny<int>()), Times.Once);
+        mockDatabaseContext.Verify(context => context.Customers.Find(customerId), Times.Once);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class Transactions_Should
 
         //Assert
         Assert.NotNull(result);
-        mockDatabaseContext.Verify(context => context.Products.Find(It.IsAny<int>()), Times.Once);
+        mockDatabaseContext.Verify(context => context.Products.Find(productId), Times.Once);
     }
 
     [Fact]
